@@ -1,0 +1,93 @@
+/* Custom styles for Campus Connect */
+body {
+    background-color: #f8f9fa;
+}
+
+.hero-section {
+    border-radius: 10px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.event-item, .group-item {
+    transition: all 0.2s;
+    border: 1px solid #dee2e6 !important;
+}
+
+.event-item:hover, .group-item:hover {
+    border-color: #007bff !important;
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+.members-list .badge {
+    margin: 2px;
+}
+
+.btn {
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 5px;
+    }
+}
+
+/* Animation for page transitions */
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
