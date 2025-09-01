@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Campus Connect - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-primary text-white py-5 mb-5 rounded">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4">Welcome to Campus Connect</h1>
+                <p class="lead">Your one-stop platform for university events and study groups. Connect with fellow students, discover exciting events, and join collaborative study groups.</p>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Login</a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-graduation-cap fa-8x opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar"></i> Recent Events
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                    {% for event in events %}
+                    <div class="event-item mb-3 p-3 border rounded">
+                        <h6 class="fw-bold">{{ event.title }}</h6>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-calendar"></i> {{ event.date.strftime('%B %d, %Y') }}
+                            {% if event.time %}
+                                <i class="fas fa-clock ms-2"></i> {{ event.time }}
+                            {% endif %}
+                        </p>
+                        {% if event.location %}
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                        </p>
+                        {% endif %}
+                        <span class="badge bg-secondary">{{ event.category.title() }}</span>
+                        <small class="text-muted d-block mt-2">by {{ event.creator.full_name }}</small>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('events') }}" class="btn btn-info">View All Events</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No events available yet. Be the first to create one!</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('create_event') }}" class="btn btn-primary">Create Event</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users"></i> Active Study Groups
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if groups %}
+                    {% for group in groups %}
+                    <div class="group-item mb-3 p-3 border rounded">
+                        <h6 class="fw-bold">{{ group.name }}</h6>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-book"></i> {{ group.subject }}
+                        </p>
+                        {% if group.meeting_time %}
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-clock"></i> {{ group.meeting_time }}
+                        </p>
+                        {% endif %}
+                        {% if group.location %}
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt"></i> {{ group.location }}
+                        </p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary">{{ group.members|length }}/{{ group.max_members }} members</span>
+                            <small class="text-muted">by {{ group.creator.full_name }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('study_groups') }}" class="btn btn-success">View All Groups</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No study groups available yet. Be the first to create one!</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('create_study_group') }}" class="btn btn-success">Create Study Group</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.is_authenticated %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5>Quick Actions</h5>
+                <a href="{{ url_for('create_event') }}" class="btn btn-info me-2">
+                    <i class="fas fa-plus"></i> Create Event
+                </a>
+                <a href="{{ url_for('create_study_group') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Create Study Group
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

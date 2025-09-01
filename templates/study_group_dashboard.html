@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} - Campus Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Group Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-users"></i> {{ group.name }}</h2>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-info">{{ group.subject }}</span>
+                        <span class="ms-2">{{ group.members|length }}/{{ group.max_members }} members</span>
+                        {% if group.meeting_time %}
+                        <span class="ms-2"><i class="fas fa-clock"></i> {{ group.meeting_time }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{{ url_for('study_groups') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Groups
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs" id="groupTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="members-tab" data-bs-toggle="tab" data-bs-target="#members" type="button" role="tab">
+                <i class="fas fa-users"></i> Members
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                <i class="fas fa-comments"></i> Chat
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="classroom-tab" data-bs-toggle="tab" data-bs-target="#classroom" type="button" role="tab">
+                <i class="fas fa-chalkboard"></i> Classroom
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="groupTabsContent">
+        <!-- Members Tab -->
+        <div class="tab-pane fade show active" id="members" role="tabpanel">
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <h4>Group Members</h4>
+                    <div class="row">
+                        {% for member in group.members %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3">
+                                            {{ member.full_name[0].upper() }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {{ member.full_name }}
+                                                {% if member.id == group.creator_id %}
+                                                <i class="fas fa-crown text-warning" title="Group Leader"></i>
+                                                {% endif %}
+                                            </h6>
+                                            <p class="text-muted mb-1">@{{ member.username }}</p>
+                                            {% if member.course %}
+                                            <small class="text-info">{{ member.course }}{% if member.year_of_study %} - Year {{ member.year_of_study }}{% endif %}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Group Info</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Subject:</strong> {{ group.subject }}</p>
+                            {% if group.description %}
+                            <p><strong>Description:</strong> {{ group.description }}</p>
+                            {% endif %}
+                            {% if group.meeting_time %}
+                            <p><strong>Meeting Time:</strong> {{ group.meeting_time }}</p>
+                            {% endif %}
+                            {% if group.location %}
+                            <p><strong>Location:</strong> {{ group.location }}</p>
+                            {% endif %}
+                            <p><strong>Created:</strong> {{ group.created_at.strftime('%B %d, %Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div class="tab-pane fade" id="chat" role="tabpanel">
+            <div class="row mt-4">
+                <div class="col">
+                    <div class="card" style="height: 500px;">
+                        <div class="card-header">
+                            <h5><i class="fas fa-comments"></i> Group Chat</h5>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <!-- Messages Area -->
+                            <div id="chatMessages" class="flex-grow-1 overflow-auto mb-3" style="max-height: 350px;">
+                                {% for message in messages %}
+                                <div class="message mb-3 {% if message.user_id == current_user.id %}text-end{% endif %}">
+                                    <div class="message-bubble {% if message.user_id == current_user.id %}bg-primary text-white ms-auto{% else %}bg-light{% endif %}" style="max-width: 70%; display: inline-block; padding: 10px; border-radius: 15px;">
+                                        {% if message.user_id != current_user.id %}
+                                        <strong>{{ message.sender.full_name }}:</strong><br>
+                                        {% endif %}
+                                        {{ message.content }}
+                                        <div class="message-time mt-1">
+                                            <small class="{% if message.user_id == current_user.id %}text-light{% else %}text-muted{% endif %}">
+                                                {{ message.timestamp.strftime('%H:%M') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Message Input -->
+                            <div class="mt-auto">
+                                <form id="chatForm" class="d-flex">
+                                    <input type="text" id="messageInput" class="form-control me-2" placeholder="Type your message..." required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classroom Tab -->
+        <div class="tab-pane fade" id="classroom" role="tabpanel">
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <h4><i class="fas fa-book"></i> Study Resources</h4>
+                    
+                    <!-- Resources List -->
+                    <div id="resourcesList">
+                        {% for resource in resources %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6>
+                                            {% if resource.resource_type == 'note' %}
+                                            <i class="fas fa-sticky-note text-warning"></i>
+                                            {% elif resource.resource_type == 'link' %}
+                                            <i class="fas fa-link text-primary"></i>
+                                            {% else %}
+                                            <i class="fas fa-file text-info"></i>
+                                            {% endif %}
+                                            {{ resource.title }}
+                                        </h6>
+                                        {% if resource.description %}
+                                        <p class="text-muted">{{ resource.description }}</p>
+                                        {% endif %}
+                                        {% if resource.content %}
+                                        <div class="mt-2 p-2 bg-light rounded">
+                                            {{ resource.content|nl2br }}
+                                        </div>
+                                        {% endif %}
+                                        {% if resource.file_url %}
+                                        <a href="{{ resource.file_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                            <i class="fas fa-external-link-alt"></i> Open Link
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        by {{ resource.creator.full_name }}<br>
+                                        {{ resource.created_at.strftime('%m/%d %H:%M') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% if not resources %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                            <h5>No Resources Yet</h5>
+                            <p class="text-muted">Be the first to add study materials!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Add Resource Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-plus"></i> Add Resource</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('add_resource', group_id=group.id) }}">
+                                <div class="mb-3">
+                                    <label class="form-label">Resource Type</label>
+                                    <select name="resource_type" class="form-select" id="resourceType">
+                                        <option value="note">Study Note</option>
+                                        <option value="link">Web Link</option>
+                                        <option value="file">File/Document</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="title" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="description" class="form-control" rows="2"></textarea>
+                                </div>
+                                
+                                <div class="mb-3" id="contentField">
+                                    <label class="form-label">Content</label>
+                                    <textarea name="content" class="form-control" rows="4" placeholder="Write your study notes here..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3" id="urlField" style="display: none;">
+                                    <label class="form-label">URL</label>
+                                    <input type="url" name="file_url" class="form-control" placeholder="https://...">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-plus"></i> Add Resource
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat JavaScript -->
+<script>
+// Chat functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const groupId = {{ group.id }};
+
+    // Send message
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            fetch(`/send_message/${groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageInput.value = '';
+                    addMessageToChat(data.message, true);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+
+    // Add message to chat
+    function addMessageToChat(message, isOwn) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message mb-3 ${isOwn ? 'text-end' : ''}`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-bubble ${isOwn ? 'bg-primary text-white ms-auto' : 'bg-light'}" style="max-width: 70%; display: inline-block; padding: 10px; border-radius: 15px;">
+                ${!isOwn ? `<strong>${message.sender}:</strong><br>` : ''}
+                ${message.content}
+                <div class="message-time mt-1">
+                    <small class="${isOwn ? 'text-light' : 'text-muted'}">
+                        ${message.timestamp}
+                    </small>
+                </div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Auto-refresh messages every 5 seconds
+    setInterval(function() {
+        if (document.querySelector('#chat.active')) {
+            refreshMessages();
+        }
+    }, 5000);
+
+    function refreshMessages() {
+        fetch(`/get_messages/${groupId}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update messages (simple approach - could be optimized)
+            if (data.messages) {
+                // This is a simple refresh - in production you'd want incremental updates
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Resource type switcher
+    const resourceType = document.getElementById('resourceType');
+    const contentField = document.getElementById('contentField');
+    const urlField = document.getElementById('urlField');
+
+    if (resourceType) {
+        resourceType.addEventListener('change', function() {
+            if (this.value === 'link' || this.value === 'file') {
+                contentField.style.display = 'none';
+                urlField.style.display = 'block';
+            } else {
+                contentField.style.display = 'block';
+                urlField.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.message-bubble {
+    word-wrap: break-word;
+}
+
+#chatMessages {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
